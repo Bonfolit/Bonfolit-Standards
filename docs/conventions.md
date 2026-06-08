@@ -26,7 +26,7 @@ the codebase consistent enough to navigate by guessing.
 | Awaitable request wrapper | `XxxTask` | `WinStreakSyncTask` |
 | Offline cache | `XxxCacheHelper`, `XxxCacheStateCreator` | `WinStreakCacheHelper` |
 | Service | `XxxService` | `PurchaseService` |
-| Installer | `XxxInstaller`, `XxxSceneInstaller`, `XxxMainInstaller` | `RootInstaller` |
+| Installer | `XxxSceneInstaller` (feature, one per feature); context installers `ProjectInstaller`/`RootInstaller`/`MainInstaller` | `WinStreakSceneInstaller` |
 | Signal | `XxxSignal` (struct) | `AuthSuccessSignal` |
 | Cheat/dev view | `XxxCheatView` | `WinStreakCheatView` |
 
@@ -36,7 +36,8 @@ the codebase consistent enough to navigate by guessing.
   particular caller may use (`IXxxMainController`, `IXxxSceneController`, `IXxxWarmUpController`, …).
   Consumers inject the **narrow** interface, never the fat concrete class.
 - Cross-system hooks are interfaces too: `ILevelResultListener`, `IConnectionStateListener`,
-  `IXxxProvider` (read surfaces), `IXxxDelegate` (callback surfaces).
+  `IXxxProvider` (read surfaces), `IXxxDelegate` (callback surfaces), `IXxxAccess` /
+  `IXxxMainControllerRegister` (parent-owned surfaces a feature registers itself into).
 
 ### Fields
 - Private fields `_camelCase`. Injected fields `[Inject] private readonly IFoo _foo;`.

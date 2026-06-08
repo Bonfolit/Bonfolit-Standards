@@ -44,8 +44,8 @@ DailyQuest/
     DailyQuestSyncTask.cs
     DailyQuestCacheHelper.cs
   Injection/
-    DailyQuestMainInstaller.cs             (static Install(DiContainer))
-    DailyQuestSceneInstaller.cs            (MonoInstaller, holds the SceneView ref)
+    DailyQuestSceneInstaller.cs            (MonoInstaller on the scene context — binds the whole feature)
+    IDailyQuestAccess.cs                   (optional: accessor interface, only if a parent must reach in)
   Debug/
     DailyQuestCheatView.cs                 (#if BONFOLIT_DEV)
   Test/
@@ -117,9 +117,11 @@ The `DailyQuestSceneView : MonoBehaviour, IDailyQuestSceneView` renders and rais
 
 ## 5. Controllers (the brain)
 
-- **`DailyQuestMainController`** — long-lived (Root). Implements its role interfaces + Zenject
-  lifecycle + the cross-system hooks the feature reacts to (level results, connection state, event
-  fetched, open-location). Owns the model, coordinates sub-controllers.
+- **`DailyQuestMainController`** — the feature's orchestrator, bound in the feature's **own context**
+  (not Root). Implements its role interfaces + Zenject lifecycle + the cross-system hooks the feature
+  reacts to (level results, connection state, event fetched, open-location). Owns the model, coordinates
+  sub-controllers. If a parent must reach it, it registers itself upward through an accessor interface
+  (§6) instead of being bound into the parent.
 - **`DailyQuestSceneController`** — created when the scene opens; sets itself as the view's listener,
   registers with the MainController, builds/tears down the scene.
 - Split the rest by job: `Open`, `Icon`, `Network`, `RewardClaim`, `Analytics`.
@@ -149,40 +151,76 @@ public class DailyQuestMainController :
 
 ## 6. Injection (wire it in one place)
 
-**Main installer** (static) — binds the long-lived pieces; called from the game's `RootInstaller`:
-
-```csharp
-public static class DailyQuestMainInstaller
-{
-    public static void Install(DiContainer c)
-    {
-        c.BindInterfacesTo<DailyQuestMainController>().AsSingle().NonLazy();
-        c.Bind<DailyQuestModel>().AsSingle();
-        c.BindInterfacesTo<DailyQuestNetworkController>().AsSingle();
-        c.BindInterfacesTo<DailyQuestIconController>().AsSingle();
-        c.BindInterfacesTo<DailyQuestOpenController>().AsSingle();
-        c.Bind<DailyQuestRewardClaimController>().AsSingle();
-        c.BindInterfacesAndSelfTo<DailyQuestAnalytics>().AsSingle();
-        c.BindInterfacesTo<DailyQuestCacheHelper>().AsSingle();
-        c.Bind<DailyQuestSyncRequestCommand>().AsSingle();
-        c.Bind<DailyQuestSyncTask>().AsSingle();
-    }
-}
-```
-
-**Scene installer** (MonoInstaller on the scene's Zenject context) — binds the scene-scoped pieces:
+One **`DailyQuestSceneInstaller`** (a MonoInstaller on the feature scene's Zenject context) binds the
+whole feature into its **own SceneContext** — model, every controller, network, and the view. Nothing
+is bound into Root, so adding the feature touches no parent installer; you just attach this installer to
+the scene's context in the Editor.
 
 ```csharp
 public class DailyQuestSceneInstaller : MonoInstaller
 {
     [SerializeField] private DailyQuestSceneView _sceneView;
+
     public override void InstallBindings()
     {
-        Container.BindInterfacesTo<DailyQuestSceneController>().AsSingle();
+        // Orchestrator + state
+        Container.BindInterfacesTo<DailyQuestMainController>().AsSingle().NonLazy();
+        Container.Bind<DailyQuestModel>().AsSingle();
+
+        // Sub-controllers
+        Container.BindInterfacesTo<DailyQuestNetworkController>().AsSingle();
+        Container.BindInterfacesTo<DailyQuestIconController>().AsSingle();
+        Container.BindInterfacesTo<DailyQuestOpenController>().AsSingle();
+        Container.Bind<DailyQuestRewardClaimController>().AsSingle();
+        Container.BindInterfacesAndSelfTo<DailyQuestAnalytics>().AsSingle();
+
+        // Network plumbing
+        Container.BindInterfacesTo<DailyQuestCacheHelper>().AsSingle();
+        Container.Bind<DailyQuestSyncRequestCommand>().AsSingle();
+        Container.Bind<DailyQuestSyncTask>().AsSingle();
+
+        // Scene-bound view + per-scene controller
         Container.Bind<IDailyQuestSceneView>().FromInstance(_sceneView).AsSingle();
+        Container.BindInterfacesTo<DailyQuestSceneController>().AsSingle().NonLazy();
     }
 }
 ```
+
+**Exposing the feature to a parent (only if needed).** Don't bind the feature's classes into Root so the
+game can reach them. Instead the **parent** declares an accessor interface and binds a holder for it; the
+feature **registers itself upward** from its own lifecycle:
+
+```csharp
+// In the parent (e.g. Root) container — an interface the parent owns + a holder it binds:
+public interface IDailyQuestAccess
+{
+    IDailyQuestMainController Controller { get; }   // null while the feature isn't open
+    void SetController(IDailyQuestMainController controller);
+    void ClearController(IDailyQuestMainController controller);
+}
+// RootInstaller: Container.BindInterfacesTo<DailyQuestAccess>().AsSingle();
+
+// The feature registers upward from its own Initialize/Dispose:
+public class DailyQuestMainController : IInitializable, IDisposable, IDailyQuestMainController
+{
+    [Inject] private readonly IDailyQuestAccess _access;
+    public void Initialize() => _access.SetController(this);
+    public void Dispose()    => _access.ClearController(this);
+}
+```
+
+The parent depends only on `IDailyQuestAccess` (which it owns); the feature's concrete classes stay in
+its container, and the handle is valid exactly while the feature is alive. Reach for this only when a
+parent genuinely needs the feature — most features talk *outward* through the seams in §7, not by being
+reached into.
+
+> **Cross-scene feature?** If a feature must keep working while its *own* scene is closed — a permanent
+> home-screen icon, or reacting to level results fired from the gameplay scene — those long-lived pieces
+> can't live in a transient SceneContext. Bind just those pieces (the `IconController`, the long-lived
+> `MainController`/`Model`) in the context that actually spans that lifetime (the home shell or Root),
+> still from the feature's own installer, and keep the per-scene pieces in the scene. Everything else
+> below is unchanged: the scene controller registers up, and the game reaches the feature through
+> interfaces.
 
 ---
 
@@ -190,9 +228,13 @@ public class DailyQuestSceneInstaller : MonoInstaller
 
 This is the whole point of the architecture — integration is a handful of explicit lines:
 
-1. **Install the feature** — add one line to `RootInstaller` (`DailyQuestMainInstaller.Install(Container);`).
-2. **Level lifecycle** — add the feature's `MainController` to the central
-   `CoreGameLevelResultListener` fan-out (one inject + one call per level event). See
+1. **Install the feature** — attach its `DailyQuestSceneInstaller` to its scene's Zenject context in the
+   Editor. No `RootInstaller` edit (the feature lives in its own context). The one exception is a
+   cross-scene feature exposing a long-lived piece upward: bind its accessor holder in `RootInstaller`
+   (one line) so the feature can register into it.
+2. **Level lifecycle** — make the feature react to level events through the central
+   `CoreGameLevelResultListener`. A cross-scene feature registers its level listener into the aggregator
+   (via the aggregator's register interface); the aggregator fans out in the order you choose. See
    [`cross-system-communication.md`](cross-system-communication.md#3-aggregator--mediator-ordered-fan-out).
 3. **Home icon / footer** — register the feature's icon with the home/footer system (delegate pattern).
 4. **Scene routing** — add the scene to the scene enum + the action-queue context so it can be opened.
@@ -218,9 +260,10 @@ This is the whole point of the architecture — integration is a handful of expl
 - [ ] View is a dumb MonoBehaviour with `IXxxView` + `IXxxSceneListener`.
 - [ ] Each server call = `XxxRequestCommand` + `XxxTask`; controller owns timing; cache helper exists.
 - [ ] `XxxMainController` implements only narrow role interfaces + needed cross-system hooks.
-- [ ] All wiring is in `XxxMainInstaller` / `XxxSceneInstaller`.
-- [ ] Bound in the correct DI context (long-lived → Root; scene-scoped → Scene).
-- [ ] Integration is limited to: install line, level-aggregator entry, icon registration, scene
-      routing, signals.
+- [ ] All wiring is in `XxxSceneInstaller`; the feature's classes are bound in the feature's own context.
+- [ ] Nothing feature-specific is bound into Root. A parent reaches the feature only through an accessor
+      interface the feature registers itself into (cross-scene pieces excepted, per §6).
+- [ ] Integration is limited to: attaching the scene installer, level-aggregator registration, icon
+      registration, scene routing, signals.
 - [ ] Dev tools are behind `#if BONFOLIT_DEV` in the `Debug`/`Cheat` assembly.
 - [ ] Namespaces mirror folders; assemblies follow the tier's strategy (A or B).

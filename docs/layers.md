@@ -69,8 +69,10 @@ public interface IWinStreakSceneView
 
 - **Plain C#** (not a MonoBehaviour). Orchestrates: owns the Model, drives the View (through its
   interface), calls Network/Service, reacts to lifecycle and signals.
-- One **`XxxMainController`** per feature is the orchestrator/facade and is the type other systems
-  inject. It implements:
+- One **`XxxMainController`** per feature is the orchestrator/facade. It's bound in the feature's own
+  context (not a parent); other systems reach it through an accessor interface it registers itself into
+  (see [`dependency-injection.md`](dependency-injection.md#exposing-a-feature-to-a-parent-context)),
+  never by binding it into a parent context. It implements:
   - the feature's own role interfaces (`IXxxMainController`, `IXxxWarmUpController`, …),
   - Zenject lifecycle (`IInitializable`, `IDisposable`),
   - the **cross-system hook interfaces** it cares about (`ILevelResultListener`-style methods,
@@ -134,8 +136,9 @@ Two-class pattern per request (full details in [`networking.md`](networking.md))
 
 ## Injection — the wiring
 
-- One installer per feature; the only place the feature's classes are bound. See
-  [`dependency-injection.md`](dependency-injection.md).
+- One `XxxSceneInstaller` per feature, attached to the feature's scene context — the only place the
+  feature's classes are bound, and they're bound in the feature's **own** container, not in a parent.
+  See [`dependency-injection.md`](dependency-injection.md).
 
 ---
 

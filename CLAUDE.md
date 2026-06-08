@@ -22,8 +22,11 @@ Unity + Zenject (Extenject) for DI, UniTask for async.
 4. **Views are dumb `MonoBehaviour`s.** They render what they're told and raise callbacks through a
    listener interface; they hold no game logic.
 5. **Every feature lives in one folder** with `Controller/ Model/ View/ Network/ Injection/` subfolders
-   and is wired by exactly one installer. Adding a feature should not require editing unrelated code —
-   only its installer (and one line where the parent context installs it).
+   and is wired by exactly one installer — its `XxxSceneInstaller`, attached to the feature's own scene
+   context. The feature's classes are bound there, never in a parent (Root) context; adding a feature
+   should not require editing unrelated code. When a parent must reach a feature, expose an accessor
+   interface from the parent and have the feature register itself upward — see
+   [`docs/dependency-injection.md`](docs/dependency-injection.md#exposing-a-feature-to-a-parent-context).
 6. **Async is UniTask**, not coroutines or `async void`. Fire-and-forget is explicit: `.Forget()`.
 7. **Talk across features only through the sanctioned seams** (lifecycle listener interfaces, the
    SignalBus, delegate interfaces). Do not reach into another feature's controllers directly. See
@@ -45,9 +48,10 @@ Four nested Zenject DI contexts (child can resolve parent, never the reverse):
 
 ```
 ProjectContext   → lives for whole app run, survives account switch (SDKs, network, persistence, time)
-  RootContext    → per logged-in user; most game-wide controllers/models/services
+  RootContext    → per logged-in user; user-global services + accessor interfaces, NOT feature classes
     MainContext  → the main/home scene shell (header, footer, navigation)
-    SceneContext → one per gameplay/feature scene; bound + torn down with the scene
+    SceneContext → one per gameplay/feature scene; the feature (Model/controllers/View) is bound + torn
+                   down here by its own installer
 ```
 
 Layers inside a feature folder:
@@ -80,6 +84,8 @@ Layers inside a feature folder:
 - New server call → a `Command` + `Task` in the feature's `Network/` folder.
 - New global event other features react to → declare a Signal (see cross-system doc).
 - New persistent state → a `Model` + cache helper in the feature; never `PlayerPrefs` directly from a controller.
+- A parent context needs to reach a feature → an accessor interface in the parent + the feature
+  registers itself upward; do **not** bind the feature's classes into Root (see DI doc).
 
 ## Reference docs
 See [`docs/`](docs/) — architecture, DI, layers, cross-system communication, networking, the feature

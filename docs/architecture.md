@@ -80,22 +80,33 @@ ProjectContext   (whole app run; survives user/account switch)
 │   attribution/push services, global config (ScriptableObjects)
 │
 └── RootContext  (per logged-in user; rebuilt on account switch)
-    │   the bulk of the game: player model, economy, auth/sync, audio, action queue,
-    │   shop, analytics, and every feature's "Main" controller/model
+    │   user-global state + services shared across features: player model, economy,
+    │   auth/sync, audio, action queue, analytics — plus the accessor interfaces that
+    │   features register themselves into. NOT individual features' controllers/models.
     │
     ├── MainContext   (the main/home scene shell)
     │       header, footer, navigation, loading screen
     │
     └── SceneContext  (one per gameplay or feature scene)
-            the scene's View(s) + that scene's controllers; created and destroyed with the scene
+            the feature itself: its Model, controllers, and View(s) — bound by the
+            feature's own installer, created and destroyed with the scene
 ```
 
-Rules of thumb for **which context to bind in**:
+Rules of thumb for **which context to bind in** — bind each thing in the *shallowest* context whose
+lifetime it actually needs, and always from the owner's own installer:
 
 - Survives account switch / one-time SDK setup → **Project**.
-- Per-user, needs to outlive individual scenes (most feature `MainController`s and `Model`s) → **Root**.
+- Genuinely user-global state/services shared across features (player model, economy, audio) → **Root**.
 - Belongs to the home shell → **Main**.
-- Exists only while a specific scene is open (its `SceneView` and `SceneController`) → **Scene**.
+- A **feature** — its `Model`, controllers, and `View` → the feature's **own context** (normally its
+  **Scene**), wired by its one `XxxSceneInstaller`. Don't bind a feature's classes into Root.
+
+> When a parent context needs to reach a feature, don't relocate the feature's bindings upward. Expose
+> an **accessor/register interface** from the parent and have the feature register itself into it (§4).
+> The one exception is a feature that must keep running while its *own* scene is closed (a home-screen
+> icon, cross-scene level hooks): only those long-lived pieces belong in a parent context, and they're
+> still composed there by the feature's own installer and reached through interfaces — never by binding
+> the feature's concrete types into core code.
 
 > Critical Project-context rule observed in the codebase: anything bound in `ProjectContext` must be
 > safe across an account switch (the Root scene is destroyed and rebuilt on switch). Don't `LazyInject`
@@ -112,9 +123,15 @@ Full binding idioms, lifecycle interfaces, and execution ordering: [`dependency-
   a `SceneManager` + a switch params struct (`from`, `to`, whether to release the old scene, etc.).
 - Scenes are loaded/released via **Addressables**; each feature declares its `RequiredAssetKeys()` on
   its model and a `XxxAssetController` warms them up before the scene opens.
-- A feature's `MainController` is created in Root and stays alive; its `SceneController` is created when
-  the feature's scene opens and **registers itself** with the MainController, then is disposed when the
-  scene closes. This is the "long-lived brain + disposable scene" split.
+- A feature is owned by its **own context** (normally its `SceneContext`): one `XxxSceneInstaller` binds
+  its `Model`, the `MainController` orchestrator, and the `SceneController` together, all disposed when
+  the scene closes. The `SceneController` registers with the feature's `MainController` on open.
+- When a **parent** context needs a handle to the feature, the feature **registers itself upward** rather
+  than being bound into the parent: the parent declares an accessor interface (e.g.
+  `IXxxMainControllerRegister`) and binds a holder for it; the feature injects that interface and calls
+  `SetXxxMainController(this)` in `Initialize()`, clearing it in `Dispose()`. The parent depends only on
+  its own interface — never on the feature's concrete classes — and the handle is valid exactly while the
+  feature is alive.
 
 ---
 
@@ -123,7 +140,8 @@ Full binding idioms, lifecycle interfaces, and execution ordering: [`dependency-
 A feature never edits the game's core loop. Instead it *implements interfaces the game already calls*:
 
 - **Lifecycle listeners** — e.g. `ILevelResultListener` / a feature's `OnLevelStarted/Completed/Failed`.
-  A central aggregator injects every feature and fans out level events in a deterministic order.
+  A central aggregator collects every feature's listener (always-alive ones injected directly,
+  own-context features registering themselves in) and fans out level events in a deterministic order.
 - **SignalBus** — Zenject's pub/sub for decoupled global events (`AuthSuccessSignal`,
   `DisconnectedSignal`, `<Feature>EndSignal`, …).
 - **Delegate interfaces** — direct 1:1 wiring (a View's `SetListener`, an icon controller's

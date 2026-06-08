@@ -53,7 +53,7 @@ So all `Controller` code across all game features compiles into a single `Bonfol
 assembly; all `Model` code into `Bonfolit.<Game>.Model`; etc.
 
 Why: inside one game, features change together and reference each other freely (the game's
-level-result aggregator injects every feature's controller). Per-feature game assemblies would mean
+level-result aggregator reaches every feature through registered interfaces). Per-feature game assemblies would mean
 constant `.asmdef` edits and a tangle of inter-assembly references. The shared-per-layer scheme keeps
 the **layer** boundary enforced by the compiler (Model still can't see Controller) while making
 "add a feature" a zero-asmdef operation.

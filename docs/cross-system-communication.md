@@ -86,8 +86,10 @@ public interface ILevelResultListener
 }
 ```
 
-- A central listener injects every participating feature's `MainController` and fans out **in the
-  order you choose**:
+- A central listener gathers every participating feature's level listener and fans out **in the order
+  you choose**. Always-alive participants (player, economy) are injected directly as below; a feature
+  that lives in its own context **registers** its listener into the aggregator when it comes alive
+  (through a register interface), so the aggregator never depends on the feature's concrete type:
 
 ```csharp
 public class CoreGameLevelResultListener : ILevelResultListener
@@ -138,8 +140,13 @@ For two specific collaborators, wire them directly with an interface — no bus,
   _winStreakIconController.SetDelegate(this);   // 'this' implements IWinStreakIconControllerDelegate
   ```
 
-- **Child registering with parent:** a `SceneController` registers itself with the long-lived
-  `MainController` on construction, so the brain can drive the scene while it's open:
+- **Child registering with parent:** a `SceneController` registers itself with its feature's
+  `MainController` on construction, so the orchestrator can drive the scene while it's open. The **same
+  register-interface seam** is how a feature exposes its orchestrator *upward to a parent context*: the
+  parent owns the register interface, the feature registers itself into it on `Initialize` and clears it
+  on `Dispose` (see
+  [`dependency-injection.md`](dependency-injection.md#exposing-a-feature-to-a-parent-context)). This is
+  what keeps the feature's classes out of the parent container.
 
   ```csharp
   public WinStreakSceneController(IWinStreakMainControllerRegister register, ...)

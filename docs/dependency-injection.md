@@ -30,28 +30,28 @@ public class WinStreakSceneInstaller : MonoInstaller
 }
 ```
 
-### 2. Static installer method (when you're composing into a parent container)
+### 2. Static installer method (composing shared systems into a parent container)
 
-For features installed from another installer (no MonoBehaviour needed):
+A static `Install(DiContainer)` is for **genuinely shared/global systems** composed into a parent
+context (Project or Root) — not for features. A *feature* binds itself with its own `MonoInstaller` on
+its scene context (form 1); it is **not** composed into Root.
 
 ```csharp
-public static class SeasonPassMainInstaller
+public static class AudioInstaller
 {
     public static void Install(DiContainer container)
     {
-        container.BindInterfacesTo<SeasonPassMainController>().AsSingle().NonLazy();
-        container.Bind<SeasonPassMainModel>().AsSingle();
-        container.BindInterfacesTo<SeasonPassNetworkController>().AsSingle();
-        // ... all of the feature's bindings in one method
+        container.BindInterfacesTo<AudioService>().AsSingle().NonLazy();
+        // ... all of the shared system's bindings in one method
     }
 }
 ```
 
-Called from the parent: `SeasonPassMainInstaller.Install(Container);`
+Called from the parent: `AudioInstaller.Install(Container);`
 
-**Keep the big context installers (`RootInstaller`) readable** by grouping bindings into
-`private void BindX()` methods (`BindPlayer()`, `BindShop()`, `BindAudio()`, …) and calling them in
-order from `InstallBindings()`.
+**Keep parent context installers (`RootInstaller`) small.** They hold only user-global services and the
+accessor interfaces features register themselves into — group bindings into `private void BindX()`
+methods when there are several.
 
 ---
 
@@ -69,7 +69,7 @@ order from `InstallBindings()`.
 | `.WithId("name")` | Named binding when two of the same type exist (`Bind<IX>().WithId("A")` / resolve with `[Inject(Id="A")]`). |
 | `.WithArguments(x, y)` | Pass constructor args that aren't themselves bound. |
 | `.WhenInjectedInto<TConsumer>()` | Scope a binding to a specific consumer. |
-| `.OnInstantiated((ctx, obj) => …)` | Post-construct hook (e.g. SDK setup, or re-bind into parent — see below). |
+| `.OnInstantiated((ctx, obj) => …)` | Post-construct hook (e.g. SDK setup). |
 | `Container.DeclareSignal<TSignal>()` | Register a SignalBus event type (see cross-system doc). |
 
 Prefer **`BindInterfacesTo`** so consumers depend on abstractions. Reach for
@@ -141,23 +141,36 @@ Container.BindInitializableExecutionOrder<RootSceneAuthListener>(1000);
 
 ---
 
-## Composing features into a context
+## Exposing a feature to a parent context
 
-In the big `RootInstaller`, each feature is one grouped call. The pattern that lets a sub-context
-feature expose its long-lived controller to the parent (Root) scope is the `OnInstantiated` re-bind:
+A feature lives in its own context and is **not** bound into Root. When a parent scope genuinely needs a
+handle to a feature, the parent owns an **accessor/register interface**; the feature **registers itself
+upward** from its own lifecycle. The parent never depends on the feature's concrete types.
 
 ```csharp
-container.BindInterfacesTo<SeasonPassMainController>().AsSingle()
-    .OnInstantiated((_, obj) =>
-        container.ParentContainers[0]
-                 .BindInterfacesAndSelfTo<SeasonPassMainController>()
-                 .FromInstance(obj).AsSingle().NonLazy())
-    .NonLazy();
+// Parent (Root) declares the interface and binds a holder it owns:
+public interface ISeasonPassAccess
+{
+    ISeasonPassMainController Controller { get; }     // null while the feature isn't open
+    void Set(ISeasonPassMainController c);
+    void Clear(ISeasonPassMainController c);
+}
+// RootInstaller: Container.BindInterfacesTo<SeasonPassAccess>().AsSingle();
+
+// The feature (in its own SceneContext) injects the parent's interface and registers itself:
+public class SeasonPassMainController : IInitializable, IDisposable, ISeasonPassMainController
+{
+    [Inject] private readonly ISeasonPassAccess _access;
+    public void Initialize() => _access.Set(this);
+    public void Dispose()    => _access.Clear(this);
+}
 ```
 
-This keeps the feature's wiring inside its own installer while making its `MainController` resolvable
-by the game's aggregators. (Treat it as a known idiom; don't overuse it — if everything needs
-re-binding upward, the controller probably belongs in Root directly.)
+This keeps the feature's wiring inside its own installer while giving the game's aggregators a way to
+reach it — through an interface the parent owns, with a lifetime that tracks the feature. Prefer this to
+binding the feature's classes up into Root (and to the older `OnInstantiated` parent re-bind idiom). If a
+piece must outlive the feature's scene, see the cross-scene note in
+[`feature-recipe.md`](feature-recipe.md#6-injection-wire-it-in-one-place).
 
 ---
 
