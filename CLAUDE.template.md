@@ -44,7 +44,7 @@ the referenced document **before** writing code.
 7. Models mutate via intent methods, keep `IsDirty`, and persist only through
    their **CacheHelper**.
 8. Game-logic time comes from `TimeModel.Now` (unbiased), never `DateTime.Now`.
-9. All logging via `BonfolitLogger` with `[Feature][Class]` tags; analytics via
+9. All logging via `BonLogger` with `[Feature][Class]` tags; analytics via
    `<Feature>Analytics` classes with const event names.
 10. Cheats/debug only under `BONFOLIT_DEV` (verbose logs under
     `BONFOLIT_LOG_VERBOSE`); release profile must always compile.

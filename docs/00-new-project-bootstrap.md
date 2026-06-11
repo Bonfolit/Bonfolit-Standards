@@ -171,7 +171,7 @@ Path A imports all of this. Path B scaffolds the **minimal subset, in this order
 
 | # | System | Minimal contents |
 |---|---|---|
-| 1 | `BonfolitLogger` | static façade → console + file writer; `LogSettings`; tag convention (doc 09) |
+| 1 | `BonLogger` | static façade → console + file writer; `LogSettings`; tag convention (doc 09) |
 | 2 | Persistence | `IBasicDataPersistence` + prefs impl + deletion list (doc 05) |
 | 3 | Time | `ITimeProvider`, `UnbiasedTimeProvider`, `TimeModel` (doc 05) |
 | 4 | TaskSystem | `BaseTask`, `ActionTask`, `WaitTask`, serial runner (doc 08) |

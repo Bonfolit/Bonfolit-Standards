@@ -19,7 +19,7 @@ definitions**, and **DI-driven composition**.
    bottom of doc 00.
 
 **Prerequisite to know about:** the standards reference shared framework types
-(`BonfolitLogger`, ActionQueue, Popup system, `GenericWebRequestTask`, …). Either
+(`BonLogger`, ActionQueue, Popup system, `GenericWebRequestTask`, …). Either
 import the Bonfolit framework package (Path A) or let the bootstrap scaffold the
 minimal subset in-repo (Path B) — doc 00 Phase 0/5 covers both. After the first
 Path-B game, extract its `Lib/` into a package so every later game is Path A.
@@ -38,7 +38,7 @@ never fork the rules silently inside one game.
 | Inspector tooling | Odin Inspector (Sirenix) |
 | Asset delivery | Unity Addressables (popups, event themes, scenes) |
 | HTTP | A single `WebService` wrapper around the HTTP client (Best HTTP or equivalent) |
-| Logging | Central static `BonfolitLogger` writing to console + rolling files |
+| Logging | Central static `BonLogger` writing to console + rolling files |
 | Analytics | Firebase Analytics behind per-feature analytics classes |
 | Tests | NUnit (EditMode), per-layer test assemblies |
 
@@ -88,7 +88,7 @@ never fork the rules silently inside one game.
 7. **Models are the single source of truth** and are engine-free. They expose intent
    methods (`TryToIncreaseCurrentStep`, `LostProgress`), keep an `IsDirty` flag, and are
    persisted through cache helpers — never directly by controllers.
-8. **Every class logs through `BonfolitLogger`** with a `[Feature][Class]` tag prefix
+8. **Every class logs through `BonLogger`** with a `[Feature][Class]` tag prefix
    via a private static `Log` helper. Verbose logs sit behind `BONFOLIT_LOG_VERBOSE`.
 9. **Cheats and debug UI exist only under `BONFOLIT_DEV`** and in dedicated Cheat
    assemblies; controllers expose cheat operations via a dedicated `I<Feature>Cheat`

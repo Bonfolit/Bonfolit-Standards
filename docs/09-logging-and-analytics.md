@@ -4,14 +4,14 @@
 
 ### The logger
 
-A single static façade, `BonfolitLogger`, over an `ILogger` implementation that
+A single static façade, `BonLogger`, over an `ILogger` implementation that
 writes to the console and rolling log files:
 
 ```csharp
-BonfolitLogger.Info(message);
-BonfolitLogger.Warn(message);
-BonfolitLogger.Error(message);
-BonfolitLogger.Log(message, LogLevel level);
+BonLogger.Info(message);
+BonLogger.Warn(message);
+BonLogger.Error(message);
+BonLogger.Log(message, LogLevel level);
 ```
 
 - Initialized once at app start with `LogSettings` (console on/off, file retention);
@@ -27,7 +27,7 @@ plus `[Class/Role]`:
 ```csharp
 private static void Log(string msg, LogLevel logLevel = LogLevel.Info)
 {
-    BonfolitLogger.Log($"[WinStreak][MainController]{msg}", logLevel);
+    BonLogger.Log($"[WinStreak][MainController]{msg}", logLevel);
 }
 ```
 
@@ -46,7 +46,7 @@ out unless `BONFOLIT_LOG_VERBOSE` is defined:
 
 ```csharp
 #if BONFOLIT_LOG_VERBOSE
-    BonfolitLogger.Info($"[ViewHierarchy] {Name} - {Id} open");
+    BonLogger.Info($"[ViewHierarchy] {Name} - {Id} open");
 #endif
 ```
 

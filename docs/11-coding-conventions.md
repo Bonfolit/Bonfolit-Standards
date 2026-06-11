@@ -92,7 +92,7 @@ public class DailyBonusPopupController : IDailyBonusPopupDelegate, IDailyBonusPo
   builders, completion sources, and queue/popup tasks.
 - Views never resolve from the container; they get everything via injection at
   bind-time or `Init(...)` calls.
-- Static state is reserved for true façades (`BonfolitLogger`, `MainAudioController`,
+- Static state is reserved for true façades (`BonLogger`, `MainAudioController`,
   `TimeModel.Now`); everything else is instance state owned by the container.
 
 ## Conditional compilation
