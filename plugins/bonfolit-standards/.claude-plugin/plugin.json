@@ -1,0 +1,9 @@
+{
+  "name": "bonfolit-standards",
+  "description": "Bonfolit Standards for Unity mobile games: the 13 architecture docs (sole source), recipe skills for adding features/popups/endpoints, a /bonfolit:bootstrap setup command, a /bonfolit:release-check gate, a standards-auditor subagent, and PreToolUse guardrails that enforce the engine-free-layer and unbiased-time hard rules.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Bonfolit",
+    "email": "bonfolit@gmail.com"
+  }
+}

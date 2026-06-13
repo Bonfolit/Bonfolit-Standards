@@ -2,28 +2,23 @@
 
 <One-line description: genre, core loop, orientation, target platforms.>
 
-This project follows **Bonfolit Standards** (`Bonfolit-Standards/`). Those documents
-are the source of truth for architecture and conventions; this file is a router plus
-the hard rules — it does not replace them. When a task touches an area below, read
-the referenced document **before** writing code.
+This project follows **Bonfolit Standards**, served by the installed
+**`bonfolit-standards`** Claude Code plugin — the plugin's `docs/` are the source of
+truth for architecture and conventions. This file is the always-loaded layer: the hard
+rules + project specifics. It does not replace the docs.
 
-## Routing table
+## Standards via the plugin
 
-| Task involves… | Read first |
-|---|---|
-| Setting up this project from scratch / new systems bring-up | `Bonfolit-Standards/docs/00-new-project-bootstrap.md` |
-| Big-picture "where does this go / who calls whom" | `01-architecture.md` |
-| New feature, folders, asmdef/asmref | `02-project-structure.md` (+ feature recipe in `00`) |
-| Bindings, installers, signals, injection style | `03-dependency-injection.md` |
-| Controllers, lifecycle, listener interfaces | `04-controllers-and-lifecycle.md` |
-| Models, saving/loading, time, remote config | `05-models-and-state.md` |
-| Server calls, offline mode | `06-networking.md` |
-| UI, views, popups, panels | `07-ui-views-popups.md` |
-| Async code, UI flow scheduling (ActionQueue) | `08-async-and-queues.md` |
-| Logging, analytics events | `09-logging-and-analytics.md` |
-| Cheats, debug panels, writing tests | `10-cheats-debug-testing.md` |
-| Naming/style questions | `11-coding-conventions.md` |
-| Installing packages/SDKs, player settings | `12-packages-and-project-settings.md` |
+The **`bonfolit-standards`** skill auto-triggers on Bonfolit work and routes any
+"where does X go / what's the convention for Y" question to the right doc (00–12).
+Recipes are skills — **`add-feature`**, **`add-popup`**, **`add-endpoint`**,
+**`core-system-bringup`**. Bootstrap a project with **`/bonfolit-standards:bootstrap`**,
+gate work with **`/bonfolit-standards:release-check`**, and audit a diff with the
+**`standards-auditor`** subagent. Guardrail hooks enforce rule 1 (engine-free layers)
+and flag rule 8 (`DateTime.Now`).
+
+If the plugin isn't installed: `/plugin marketplace add <Bonfolit-Standards repo>` then
+`/plugin install bonfolit-standards@bonfolit`.
 
 ## Hard rules (never violate; full rationale in the docs)
 
@@ -55,8 +50,8 @@ the referenced document **before** writing code.
 
 ## Everyday recipes
 
-- **Add a feature / popup / endpoint:** follow the recipes at the bottom of
-  `Bonfolit-Standards/docs/00-new-project-bootstrap.md`.
+- **Add a feature / popup / endpoint / core system:** use the matching plugin skill
+  (`add-feature`, `add-popup`, `add-endpoint`, `core-system-bringup`).
 - **Promote a feature to its own assemblies:** doc 02, Option A/B.
 
 ## Project specifics (filled at bootstrap — keep current)

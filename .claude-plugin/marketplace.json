@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "bonfolit",
+  "description": "Bonfolit marketplace — standards, recipes, and guardrails for Unity mobile-game projects.",
+  "owner": {
+    "name": "Bonfolit",
+    "email": "bonfolit@gmail.com"
+  },
+  "metadata": {
+    "description": "Standards, recipes, and guardrails for Bonfolit Unity mobile-game projects. Single source of truth — install instead of copying docs into each game."
+  },
+  "plugins": [
+    {
+      "name": "bonfolit-standards",
+      "description": "Architecture standards, everyday recipes (add feature/popup/endpoint), a standards auditor, and rule-enforcement hooks for Bonfolit Unity games. The single source of truth — install it instead of copying docs into each game.",
+      "source": "./plugins/bonfolit-standards",
+      "category": "development"
+    }
+  ]
+}

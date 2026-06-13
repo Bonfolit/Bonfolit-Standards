@@ -1,0 +1,17 @@
+{
+  "description": "Bonfolit hard-rule guardrails. Rule 1: block UnityEngine references in engine-free layers (Controller/, Model/). Rule 8: flag DateTime.Now in favour of TimeModel.Now. Cross-platform Node hook (no jq dependency).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-engine-free.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
