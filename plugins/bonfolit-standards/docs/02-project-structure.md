@@ -149,7 +149,7 @@ Allowed references (→ means "may reference"):
 
 ```
 Injection  → everything (it composes)
-Controller → Model, Network, Service, Lib/FeatureLib (no engine!)
+Controller → Model, View†, Network, Service, Lib/FeatureLib (no engine!)
 View       → Model, Lib view systems (popups, view hierarchy, animation)
 Network    → Model, Lib network, Generated DTOs
 Service    → Model, Lib
@@ -158,9 +158,15 @@ Cheat/Debug→ anything (dev builds only)
 Test       → layer under test + dummies
 ```
 
-Views and Controllers never reference each other's concrete types — only interfaces
-that live beside the implementing class (see
-[04-controllers-and-lifecycle.md](04-controllers-and-lifecycle.md)).
+† **Controller → View** is permitted solely for tightly-coupled View interfaces
+(per [11-coding-conventions.md](11-coding-conventions.md)): when an interface has
+one concrete View implementation it lives in the same file as that View class, which
+places it in the View assembly. The Controller's `noEngineReferences: true` flag is
+the guard — it prevents engine coupling regardless of what the View assembly
+exposes. Controllers must never reference a concrete View type, only the interface.
+
+Views and Controllers never reference each other's concrete types — only
+tightly-coupled interfaces that are co-located with their implementing class.
 
 ## Namespaces
 

@@ -21,8 +21,14 @@
 
 ## File layout
 
-- One primary type per file; small companion interfaces/enums/delegates may share
-  the file, declared **above** the class:
+- One primary type per file.
+- **Tightly-coupled interfaces** — an interface that has exactly one concrete
+  production implementation — **must** be declared in the same `.cs` file as that
+  class, right above it, sharing the same namespace. An interface is tightly coupled
+  when it exists solely to name one class's contract. Having a test fake does **not**
+  make it loosely coupled.
+- Other companion types (enums, delegates, secondary interfaces consumed by multiple
+  callers) may optionally share the file when declared above the class.
 
 ```csharp
 public interface IDailyBonusPopupController { … }
