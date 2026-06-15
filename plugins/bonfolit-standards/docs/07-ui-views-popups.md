@@ -2,9 +2,11 @@
 
 ## View layer rules
 
-- Views are MonoBehaviours in the View assembly; they render state and forward input.
-  **No game decisions in views** — they call a delegate interface and let the
-  controller decide.
+- Views are MonoBehaviours in the View assembly; a view **renders state and plays
+  results** the controller hands it, and forwards discrete UI events (e.g. a button
+  tap) to a delegate. **No game decisions in views** — they call a delegate interface
+  and let the controller decide. (Continuous/gameplay input is its own flow — see
+  *Passive views & the input flow* below.)
 - Views are reached from controllers only through interfaces
   (`IWinStreakSceneView`), bound `FromInstance` in the scene installer:
 
@@ -27,6 +29,29 @@ public class WinStreakSceneInstaller : MonoInstaller
 - Reusable widgets (countdown timer, progress bar, ribbon, tooltip, floating text,
   loading circle, avatar) live in the framework's shared View assemblies — check
   there before writing a new one.
+
+## Passive views & the input flow
+
+A rendering view is **passive**: it renders a snapshot of state and plays the results
+the controller hands it (`Render(snapshot)`, `ApplyMove(result)`, …). It does **not**
+poll input, run a game loop, or decide anything.
+
+- **Gameplay input is its own flow, never a rendering view's `Update`.** Use a
+  dedicated input handler — a plain class ticked by Zenject (`ITickable`) — that reads
+  the pointer / raycasts and reports *intents* to the controller through a delegate
+  interface (the child→parent pattern in
+  [04-controllers-and-lifecycle.md](04-controllers-and-lifecycle.md)). The controller
+  then mutates the model and directs the view. This avoids the anti-pattern of a view
+  that raises an action **and** receives the result of that same action — a
+  view→controller→view cycle. Control is strictly one-way:
+  **input → controller → model → view**.
+- **Don't build gameplay geometry inside the view.** Runtime gameplay visuals (cards,
+  tiles, board pieces) are **prefabs** instantiated through a factory/provider
+  interface (e.g. `IBoardElementFactory`) that loads them via **Addressables** — the
+  same mechanism popups use. The view only positions, tints and animates what the
+  factory returns; it never `CreatePrimitive`s production content. The factory is the
+  single swap point for art, addressable loading and pooling, and keeps the view free
+  of asset-loading concerns.
 
 ## View hierarchy tracking
 

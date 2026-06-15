@@ -19,7 +19,11 @@ the ordered checklist. For feature `<Feature>` in game `<Game>`:
    Sub-controllers only when a concern is real. → `docs/04`.
 5. **Network (if any)** — `<X>RequestCommand : WebResponseCommand<T>` + `<X>Task :
    GenericWebRequestTask<…>`; offline-stubbed if no backend. → `docs/06` (or **add-endpoint** skill).
-6. **Views/popups** — views behind interfaces; popups via `PopupTask` on the right
+6. **Views/popups** — views behind interfaces and **passive** (render state + play
+   results, no input polling). Gameplay input is its own `ITickable` flow reporting
+   intents to the controller via a delegate (one-way: input → controller → model →
+   view); runtime gameplay visuals come from prefabs via an element factory
+   (Addressables), not geometry built in the view. Popups via `PopupTask` on the right
    ActionQueue context with the dedup guard — never a direct `Show()`. → `docs/07` (or **add-popup** skill).
 7. **Analytics** — `<Feature>Analytics : AnalyticsBase` with const event names. → `docs/09`.
 8. **Bindings** — a `Bind<Feature>()` group in the owning context installer;

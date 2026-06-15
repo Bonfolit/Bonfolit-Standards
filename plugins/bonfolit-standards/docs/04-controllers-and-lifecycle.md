@@ -157,3 +157,10 @@ public void OnLevelCompleted()
    another feature's concrete controller.
 5. Anything → View: interface implemented by the view; views never reach into
    controllers except through their delegate.
+6. Input → controller: gameplay input is its **own flow** — a dedicated handler
+   (a plain `ITickable`, *not* a view `Update`) reads the device and reports intents
+   up via a delegate interface; the controller then updates the model and directs the
+   view. Control is **one-way** (input → controller → model → view): a view must never
+   receive the result of an action it itself raised (no view→controller→view cycle).
+   Runtime gameplay visuals are prefabs from an element factory, not geometry the view
+   builds — see [07-ui-views-popups.md](07-ui-views-popups.md).
