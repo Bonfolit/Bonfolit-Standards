@@ -11,6 +11,16 @@ repo the single source of truth: rules can never silently fork inside a game.
 
 ## Install into a game
 
+Inside Claude Code, add this marketplace and install the plugin. Adding by **git URL**
+is preferred — you then pick up rule changes with a plugin update instead of re-cloning:
+
+```
+/plugin marketplace add https://github.com/Bonfolit/Bonfolit-Standards
+/plugin install bonfolit-standards@bonfolit
+```
+
+Or, if you have the repo cloned locally, point at your own clone path:
+
 ```
 /plugin marketplace add "C:/Users/<you>/Documents/Projects/Bonfolit-Standards"
 /plugin install bonfolit-standards@bonfolit
@@ -19,6 +29,32 @@ repo the single source of truth: rules can never silently fork inside a game.
 Enable it per Unity game repo. Then start a fresh project with
 `/bonfolit-standards:bootstrap`, and gate work with `/bonfolit-standards:release-check`.
 Full plugin docs: [`plugins/bonfolit-standards/README.md`](plugins/bonfolit-standards/README.md).
+
+## For collaborators (someone shared this repo with you)
+
+This repo is **not** a Unity project or a library you drop into your game — it's a
+Claude Code marketplace that ships one plugin, `bonfolit-standards`. You install that
+plugin into Claude Code, then use it from inside *your own* Unity game repos.
+
+Prerequisites:
+
+- **Claude Code** — the skills, `/commands`, hooks, and the `standards-auditor`
+  subagent are Claude Code constructs and only work there.
+- **The marketplace source** — either the git URL above (nothing to clone) or a local
+  `git clone` of this repo if you prefer the local-path install.
+- **Unity MCP server** (optional) — only needed for the bundled `.mcp.json` Unity
+  integration; the docs, skills, and commands all work without it.
+- **The Bonfolit framework, or Path B** — the standards reference shared framework
+  types (`BonLogger`, ActionQueue, the Popup system, `GenericWebRequestTask`, …). If you
+  don't have the Bonfolit framework package, follow **Path B** in
+  [`docs/00-new-project-bootstrap.md`](plugins/bonfolit-standards/docs/00-new-project-bootstrap.md),
+  which scaffolds a minimal subset in-repo. Without either, the recipes reference types
+  you don't have.
+
+Once installed and enabled in a game repo, you get `/bonfolit-standards:bootstrap`,
+`/bonfolit-standards:release-check`, the `add-feature` / `add-popup` / `add-endpoint` /
+`core-system-bringup` recipe skills, the `standards-auditor` subagent, and the
+rule-enforcement hooks — see [What's inside the plugin](#whats-inside-the-plugin) below.
 
 > **Migrating from the old copy-paste flow:** games used to copy `Bonfolit-Standards/`
 > to their root and point `CLAUDE.md` at `Bonfolit-Standards/docs/…`. With the plugin,
