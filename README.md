@@ -42,8 +42,12 @@ Prerequisites:
   subagent are Claude Code constructs and only work there.
 - **The marketplace source** — either the git URL above (nothing to clone) or a local
   `git clone` of this repo if you prefer the local-path install.
-- **Unity MCP server** (optional) — only needed for the bundled `.mcp.json` Unity
-  integration; the docs, skills, and commands all work without it.
+- **Unity MCP** (optional, but needed to let Claude drive the editor) — CoplayDev's
+  **MCP for Unity**, in two halves: the *server* is bundled in the plugin's `.mcp.json`
+  (`uvx … mcp-for-unity`), and each game must install the Unity-side *bridge* package
+  `com.coplaydev.unity-mcp` (git URL `https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main`).
+  See the plugin README's "Notes & gotchas" and doc 12. The docs, skills, and commands
+  all work without it.
 - **The Bonfolit framework, or Path B** — the standards reference shared framework
   types (`BonLogger`, ActionQueue, the Popup system, `GenericWebRequestTask`, …). If you
   don't have the Bonfolit framework package, follow **Path B** in

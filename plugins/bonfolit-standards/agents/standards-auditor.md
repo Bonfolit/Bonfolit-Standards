@@ -46,8 +46,14 @@ before flagging a subtle case.
 12. **SDKs wrapped** — feature code never references SDK namespaces directly; SDKs sit
     behind a `Service` class bound in an installer. (doc 12)
 
-Also check naming/style against doc 11 and that the game's `CLAUDE.md` "Approved
-deviations" covers any intentional rule break.
+Also check **doc 11 conventions**, in particular **interface placement**: an interface
+with a single owning implementation (a controller `IXController`→`XController`, a scene
+view `IXView`→`XView`, or a single-impl service `ISceneLoader`→`SceneLoader`) must be
+co-located in the **same `.cs` file directly above that class**, same namespace — flag a
+single-impl interface sitting in its own file. Only true abstraction boundaries bound to
+one of several impls at composition (dummy-vs-real, `BindOffline()`/`BindOnline()`,
+`#if`) belong in their own file. Plus naming/style, and that the game's `CLAUDE.md`
+"Approved deviations" covers any intentional rule break.
 
 ## Output
 

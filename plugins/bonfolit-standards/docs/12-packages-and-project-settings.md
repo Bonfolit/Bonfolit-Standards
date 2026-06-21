@@ -48,6 +48,26 @@ mobile SDKs).
 | Haptics plugin (e.g. Nice Vibrations) | wrapped by a `Service` |
 | Spine runtime | only if art uses Spine |
 
+### Editor automation — MCP for Unity (Claude Code bridge)
+
+To let Claude Code drive the editor (create scenes/prefabs/contexts, read the console,
+run EditMode tests) install **CoplayDev's MCP for Unity** — it has two halves:
+
+- **Server (Claude side)** — the `bonfolit-standards` plugin bundles it in `.mcp.json`
+  (`uvx --from mcpforunityserver==9.7.1 mcp-for-unity`; needs `uvx` on PATH).
+- **Unity-side bridge (per game)** — add via *Window → Package Manager → `+` → Add
+  package from git URL*, or to `Packages/manifest.json`:
+
+  ```json
+  "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main"
+  ```
+
+  Keep the bridge version aligned with the server pin (`9.7.x`), then run *Window → MCP
+  for Unity → Configure All Detected Clients*. Without the bridge the server reports
+  *"No Unity Editor instances found."* This is **editor tooling, not shipped game
+  code** — it doesn't belong in any game asmdef, and it can be removed from `manifest.json`
+  for release/CI builds.
+
 ### Live-ops SDKs (add when the game goes live, not day one)
 
 | SDK | Wrapped by | Notes |

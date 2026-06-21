@@ -22,13 +22,22 @@
 ## File layout
 
 - One primary type per file.
-- **Tightly-coupled interfaces** — an interface that has exactly one concrete
-  production implementation — **must** be declared in the same `.cs` file as that
-  class, right above it, sharing the same namespace. An interface is tightly coupled
-  when it exists solely to name one class's contract. Having a test fake does **not**
-  make it loosely coupled.
+- **Co-locate an interface with its implementation when one class owns it.** An
+  interface that exists solely to name a single class's contract — every controller
+  (`IMainSceneController` → `MainSceneController`), scene view (`IMainSceneView` →
+  `MainSceneView`), and single-implementation service/helper (`ISceneLoader` →
+  `SceneLoader`) — **must** be declared in the **same `.cs` file as that class, directly
+  above it, in the same namespace**, so the contract and its only implementation are
+  read, changed, and reviewed together. A test fake — or a merely *hypothetical* future
+  implementation — does **not** make it loosely coupled: co-locate now, and split the
+  interface out only if/when a second *production* implementation is actually bound.
+- **Exception — abstraction boundaries get their own file.** When the composition root
+  deliberately binds the interface to one of several implementations — platform/SDK
+  wrappers (dummy-vs-real), `BindOffline()`/`BindOnline()` services, anything chosen
+  behind `#if` — no single class owns it, so the interface lives in its own file and
+  each implementation in its own (e.g. `IWebService`, `IRemoteHost`, `IAnalyticsProvider`).
 - Other companion types (enums, delegates, secondary interfaces consumed by multiple
-  callers) may optionally share the file when declared above the class.
+  callers) may share the file when declared above the class.
 
 ```csharp
 public interface IDailyBonusPopupController { … }

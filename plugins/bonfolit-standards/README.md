@@ -15,7 +15,7 @@ the standards live here and here only, so they can never silently fork.
 | **/bonfolit-standards:release-check** | `commands/release-check.md` | The "before claiming done" gate. |
 | **standards-auditor** | `agents/standards-auditor.md` | Read-only subagent that audits a diff against the 12 rules. |
 | **Guardrail hook** | `hooks/` | PreToolUse: blocks `UnityEngine` in engine-free layers (rule 1), flags `DateTime.Now` (rule 8). |
-| **Unity MCP** | `.mcp.json` | Bundles the Unity editor MCP server (uvx `mcp-for-unity`). |
+| **Unity MCP** | `.mcp.json` | Bundles the **MCP for Unity** *server* (uvx `mcp-for-unity`). Each game also needs the Unity-side **bridge** package `com.coplaydev.unity-mcp` installed — see [Notes & gotchas](#notes--gotchas). |
 | **CLAUDE template** | `templates/CLAUDE.template.md` | Stamped into each new game by `/bonfolit-standards:bootstrap`. |
 
 ## Install
@@ -45,8 +45,29 @@ git host, point `/plugin marketplace add` at the repo URL instead of the local p
   restart Claude Code; use `claude --debug` to see hook registration, and `/hooks` to
   list active hooks. The hook is Node-based (no `jq` dependency) and **fails open** —
   a malformed payload never blocks a tool.
-- **Unity MCP requires `uvx` on PATH.** The bundled `.mcp.json` runs
-  `uvx --from mcpforunityserver==9.7.1 mcp-for-unity`. If `uvx` isn't on PATH, set an
-  absolute path to it, or swap in your preferred Unity MCP server config.
+- **Unity MCP is two halves — install both.** Driving the editor from Claude Code
+  (create scenes/prefabs/contexts, read the console, run EditMode tests) needs
+  CoplayDev's **MCP for Unity**:
+  1. **Server (Claude side)** — bundled here in `.mcp.json`:
+     `uvx --from mcpforunityserver==9.7.1 mcp-for-unity`. Requires `uvx` on PATH (else
+     set an absolute path to it).
+  2. **Unity-side bridge (per game)** — add the package via *Window → Package Manager →
+     `+` → Add package from git URL*:
+
+     ```
+     https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main
+     ```
+
+     or add to the game's `Packages/manifest.json`:
+
+     ```json
+     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main"
+     ```
+
+  Keep the bridge version aligned with the server pin in `.mcp.json` (`9.7.x`). After it
+  imports, run *Window → MCP for Unity → Configure All Detected Clients* so the editor
+  registers with Claude Code. **Without the bridge the server has nothing to talk to**
+  and reports *"No Unity Editor instances found."* It's editor tooling, not shipped game
+  code — never reference it from a game asmdef.
 - **Versioning.** Bump `version` in `.claude-plugin/plugin.json` when rules change; this
   is the artifact that propagates to every game — never edit rules inside a game repo.
