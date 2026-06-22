@@ -27,7 +27,7 @@ Work through this checklist and report each item as ✅ / ⚠️ / ❌ with evid
    never bound into a parent container, never Root types lazy-injected into
    ProjectContext (hard rule #4).
 
-4. **Hard-rule sweep.** Spot-check the diff against the 12 hard rules — especially
+4. **Hard-rule sweep.** Spot-check the diff against the 13 hard rules — especially
    engine-free `Controller/`/`Model/` (rule 1), `TimeModel.Now` not `DateTime.Now`
    (rule 8), popups via the ActionQueue not direct `Show()` (rule 5), and `BonLogger`
    tags (rule 9). For a deeper pass, delegate to the **standards-auditor** subagent.

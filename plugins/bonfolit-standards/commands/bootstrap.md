@@ -35,5 +35,5 @@ Stand up a new Bonfolit game from the standards. Args (optional): $ARGUMENTS
    Phase 6 checkbox (release compiles, EditMode green, boots from `Root.unity`,
    device build installs, `CLAUDE.md` placeholders resolved).
 
-Throughout, obey the 12 hard rules (see the **bonfolit-standards** skill); when a doc
+Throughout, obey the 13 hard rules (see the **bonfolit-standards** skill); when a doc
 and a local file disagree, the doc wins — flag it.

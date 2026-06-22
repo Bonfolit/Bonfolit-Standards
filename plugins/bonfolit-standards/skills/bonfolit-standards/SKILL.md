@@ -65,6 +65,11 @@ When a task matches a row below, open that doc (relative to this skill file:
 11. New pure logic gets EditMode tests, named `Expectation_WhenCondition`.
 12. SDKs are wrapped by `Service` classes bound in installers — feature code never
     references SDK namespaces.
+13. **No `static` access to dynamic references.** Domain reload is **disabled** (doc 12),
+    so statics persist across play sessions — reach singletons/services/models via **DI
+    (rule 3)**, never a `static` field or `Instance` accessor. Only `const`/`readonly` data
+    and pure helpers may be `static`; sanctioned core-lib façades (`BonLogger`) must reset
+    their backing via `[RuntimeInitializeOnLoadMethod]`.
 
 ## Conduct
 

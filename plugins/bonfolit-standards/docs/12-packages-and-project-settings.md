@@ -171,10 +171,18 @@ and add a device smoke test to CI so they appear before release.
 
 ## Editor & iteration settings
 
-- **Enter Play Mode Options: domain reload may be disabled for speed** — but then
-  every static (logger, audio façade, `TimeModel`) must reset via
-  `[RuntimeInitializeOnLoadMethod]`. The core lib statics expose
-  `PrepareForReuse()` for exactly this; wire it before disabling domain reload.
+- **Enter Play Mode Options enabled, Domain Reload disabled** (Scene Reload left on) — the
+  standard, for fast play-mode entry. Set it at bootstrap:
+  `EditorSettings.enterPlayModeOptionsEnabled = true; EditorSettings.enterPlayModeOptions =
+  EnterPlayModeOptions.DisableDomainReload;` (persists in `ProjectSettings/EditorSettings.asset`,
+  so it ships with the repo for the whole team/CI).
+- Because statics no longer reset between play sessions, **hard rule 13 applies**: game code
+  takes dependencies via DI, never `static`/`Instance`. The only sanctioned statics are
+  `const`/`readonly` data, pure helpers, and core-lib façades (`BonLogger`, audio, `TimeModel`),
+  and every such façade MUST reset its backing via `[RuntimeInitializeOnLoadMethod]` — the core
+  lib statics expose `PrepareForReuse()` for exactly this; wire it. Smoke-test by entering Play
+  **twice in a row**: boot must succeed both times with no stale-singleton / "multiple
+  ProjectContext" asserts. (Extenject 9.x resets its own statics; verify yours do too.)
 - Asset Pipeline v2 with an Accelerator if the team is >2 people.
 - Sprite Atlas V2; include atlases in CI build to catch misses.
 

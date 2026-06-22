@@ -47,6 +47,11 @@ If the plugin isn't installed: `/plugin marketplace add <Bonfolit-Standards repo
     named `Expectation_WhenCondition`.
 12. SDKs are wrapped by `Service` classes bound in installers — feature code never
     references SDK namespaces.
+13. **No `static` access to dynamic references.** Domain reload is **disabled** (doc 12),
+    so statics persist across play sessions — reach singletons/services/models via **DI
+    (rule 3)**, never a `static` field or `Instance` accessor. Only `const`/`readonly` data
+    and pure helpers may be `static`; sanctioned core-lib façades (`BonLogger`) must reset
+    their backing via `[RuntimeInitializeOnLoadMethod]`.
 
 ## Everyday recipes
 
@@ -61,6 +66,7 @@ If the plugin isn't installed: `/plugin marketplace add <Bonfolit-Standards repo
 - Backend: `<offline bindings | base URL per environment>`
 - Target platforms & min OS: `<iOS 13+ / Android API 24+>`
 - Defines per profile: dev `BONFOLIT_DEV;BONFOLIT_LOG_VERBOSE` · QA `BONFOLIT_DEV` · release none
+- Editor: Enter Play Mode Options on, **Domain Reload disabled** (Scene Reload on) — every static façade must reset via `[RuntimeInitializeOnLoadMethod]` (hard rule 13)
 - Run tests: Unity Test Runner, EditMode (CLI: `-runTests -testPlatform EditMode`)
 - Build: `<command / CI job name>`
 - Installed SDKs so far: `<list, or "dummies only">`

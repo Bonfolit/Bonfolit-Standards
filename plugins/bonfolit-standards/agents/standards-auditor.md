@@ -1,6 +1,6 @@
 ---
 name: standards-auditor
-description: Use this agent to review a changeset/diff in a Bonfolit Unity game against the 12 Bonfolit hard rules and the standards docs. Invoke after scaffolding a feature, before a PR, or as part of /bonfolit-standards:release-check. Read-only — it reports violations with file:line and the rule number; it does not edit code.
+description: Use this agent to review a changeset/diff in a Bonfolit Unity game against the 13 Bonfolit hard rules and the standards docs. Invoke after scaffolding a feature, before a PR, or as part of /bonfolit-standards:release-check. Read-only — it reports violations with file:line and the rule number; it does not edit code.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -15,7 +15,7 @@ Audit the current changeset. Default to the working diff (`git diff` / `git diff
 and `git diff <base>...HEAD` when a base branch is given). If git is unavailable, audit
 the files the caller names.
 
-## What to check (the 12 hard rules)
+## What to check (the 13 hard rules)
 
 For each, cite `path:line` and the rule number. The full rationale is in the docs that
 ship with the bonfolit-standards plugin (`docs/01`…`docs/12`) — read the relevant doc
@@ -45,6 +45,11 @@ before flagging a subtle case.
     tests named `Expectation_WhenCondition`. (doc 10)
 12. **SDKs wrapped** — feature code never references SDK namespaces directly; SDKs sit
     behind a `Service` class bound in an installer. (doc 12)
+13. **No static for dynamic refs** — game code must not reach singletons/services/models
+    through `static` fields or `Instance` accessors (domain reload is disabled, doc 12);
+    deps come via DI. Allowed: `const`/`readonly` data, pure stateless helpers, and core-lib
+    façades that reset via `[RuntimeInitializeOnLoadMethod]`. Flag `static` mutable
+    reference fields and hand-rolled singletons under `Controller/`/`Model/`/`View/`. (docs 12, 03)
 
 Also check **doc 11 conventions**, in particular **interface placement**: an interface
 with a single owning implementation (a controller `IXController`→`XController`, a scene

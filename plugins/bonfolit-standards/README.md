@@ -9,11 +9,11 @@ the standards live here and here only, so they can never silently fork.
 | Piece | Path | What it does |
 |---|---|---|
 | **13 standards docs** | `docs/00…12` | Architecture & conventions — the source of truth. **Sole source**: not copied into games. |
-| **Router skill** | `skills/bonfolit-standards/` | Auto-triggers on Bonfolit work; routes to the right doc and carries the 12 hard rules. |
+| **Router skill** | `skills/bonfolit-standards/` | Auto-triggers on Bonfolit work; routes to the right doc and carries the 13 hard rules. |
 | **Recipe skills** | `skills/{add-feature,add-popup,add-endpoint,core-system-bringup}/` | The everyday one-shots, mirroring the doc-00 recipes. |
 | **/bonfolit-standards:bootstrap** | `commands/bootstrap.md` | Drives a new project through doc-00 Phase 0 → 6. |
 | **/bonfolit-standards:release-check** | `commands/release-check.md` | The "before claiming done" gate. |
-| **standards-auditor** | `agents/standards-auditor.md` | Read-only subagent that audits a diff against the 12 rules. |
+| **standards-auditor** | `agents/standards-auditor.md` | Read-only subagent that audits a diff against the 13 rules. |
 | **Guardrail hook** | `hooks/` | PreToolUse: blocks `UnityEngine` in engine-free layers (rule 1), flags `DateTime.Now` (rule 8). |
 | **Unity MCP** | `.mcp.json` | Bundles the **MCP for Unity** *server* (uvx `mcp-for-unity`). Each game also needs the Unity-side **bridge** package `com.coplaydev.unity-mcp` installed — see [Notes & gotchas](#notes--gotchas). |
 | **CLAUDE template** | `templates/CLAUDE.template.md` | Stamped into each new game by `/bonfolit-standards:bootstrap`. |

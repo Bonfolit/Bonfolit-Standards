@@ -58,7 +58,9 @@ Apply [12-packages-and-project-settings.md](12-packages-and-project-settings.md)
    **deferred** — bind dummies (doc 12 SDK rule).
 3. Player settings: both-platforms table + the target platform's table.
 4. Scripting defines: dev profile `BONFOLIT_DEV;BONFOLIT_LOG_VERBOSE`.
-5. Version-control hygiene block (gitignore, force-text, LFS).
+5. Editor iteration: enable **Enter Play Mode Options with Domain Reload disabled** (doc 12);
+   ensure every core-lib static façade resets via `[RuntimeInitializeOnLoadMethod]` (hard rule 13).
+6. Version-control hygiene block (gitignore, force-text, LFS).
 
 ✅ **Checkpoint:** empty project compiles on the target platform with zero errors,
 defines visible in Player Settings.
